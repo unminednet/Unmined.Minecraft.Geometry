@@ -1,0 +1,30 @@
+name: Build & Publish NuGet Package
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    name: Update NuGet package
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup .NET Core @ Latest
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 6.0.x
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build -c Release --no-restore
+
+      - name: Push generated package to GitHub registry
+        run: dotnet nuget push ./Unmined.Minecraft.Geometry/bin/Release/*.nupkg --skip-duplicate --no-symbols -s https://nuget.pkg.github.com/unminednet/index.json -k ${NUGET_AUTH_TOKEN}
+        env:
+          NUGET_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
